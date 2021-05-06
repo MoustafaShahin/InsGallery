@@ -8,6 +8,7 @@ android {
         targetSdkVersion cfgs.targetSdkVersion
         versionCode cfgs.versionCode
         versionName cfgs.versionName
+        multiDexEnabled true
     }
 
     compileOptions {
