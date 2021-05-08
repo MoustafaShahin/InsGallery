@@ -1,14 +1,21 @@
 package com.luck.picture.lib
 
 import android.content.Context
+import android.content.ContextWrapper
+import android.content.Intent
 import android.graphics.Color
 import android.media.MediaPlayer
 import android.net.Uri
+import android.os.Bundle
+import android.os.Parcelable
 import android.text.TextUtils
 import android.view.View
+import android.view.WindowManager
 import android.widget.*
 import com.luck.picture.lib.config.PictureConfig
+import com.luck.picture.lib.config.PictureMimeType
 import com.luck.picture.lib.entity.LocalMedia
+import com.luck.picture.lib.tools.SdkVersionUtils
 import java.util.*
 
 /**
@@ -17,19 +24,20 @@ import java.util.*
  * @描述: 视频播放类
  */
 class PictureVideoPlayActivity : PictureBaseActivity(), MediaPlayer.OnErrorListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, View.OnClickListener {
-    private var videoPath: String? = null
-    private var ibLeftBack: ImageButton? = null
-    private var mMediaController: MediaController? = null
-    private var mVideoView: VideoView? = null
-    private var tvConfirm: TextView? = null
-    private var iv_play: ImageView? = null
-    private var mPositionWhenPaused = -1
-    override val isImmersive: Boolean
+    private  var videoPath: String? = null
+    private  var ibLeftBack: ImageButton? = null
+    private  var mMediaController: MediaController? = null
+    private  var mVideoView: VideoView? = null
+    private  var tvConfirm: TextView? = null
+    private  var iv_play: ImageView? = null
+    private  var mPositionWhenPaused = -1
+     override val isImmersive: Boolean
         get() = false
     override val isRequestedOrientation: Boolean
         get() = false
 
-    protected override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
         super.onCreate(savedInstanceState)
     }
@@ -37,10 +45,10 @@ class PictureVideoPlayActivity : PictureBaseActivity(), MediaPlayer.OnErrorListe
     override val resourceId: Int
         get() = R.layout.picture_activity_video_play
 
-    protected override fun initPictureSelectorStyle() {
+    override fun initPictureSelectorStyle() {
         if (config.style != null) {
             if (config.style.pictureLeftBackIcon !== 0) {
-                ibLeftBack.setImageResource(config.style.pictureLeftBackIcon)
+                ibLeftBack?.setImageResource(config.style.pictureLeftBackIcon)
             }
         }
     }
@@ -77,9 +85,9 @@ class PictureVideoPlayActivity : PictureBaseActivity(), MediaPlayer.OnErrorListe
                         === PictureConfig.SINGLE) && config.enPreviewVideo && !isExternalPreview) View.VISIBLE else View.GONE)
     }
 
-    fun onStart() {
+    override fun onStart() {
         // Play Video
-        if (SdkVersionUtils.checkedAndroid_Q() && PictureMimeType.isContent(videoPath)) {
+        if (SdkVersionUtils.checkedAndroid_Q() && videoPath?.let { PictureMimeType.isContent(it) } == true) {
             mVideoView.setVideoURI(Uri.parse(videoPath))
         } else {
             mVideoView.setVideoPath(videoPath)
@@ -88,10 +96,10 @@ class PictureVideoPlayActivity : PictureBaseActivity(), MediaPlayer.OnErrorListe
         super.onStart()
     }
 
-    fun onPause() {
+    override fun onPause() {
         // Stop video when the activity is pause.
-        mPositionWhenPaused = mVideoView.getCurrentPosition()
-        mVideoView.stopPlayback()
+        mPositionWhenPaused = mVideoView?.getCurrentPosition()!!
+        mVideoView?.stopPlayback()
         super.onPause()
     }
 
@@ -102,7 +110,7 @@ class PictureVideoPlayActivity : PictureBaseActivity(), MediaPlayer.OnErrorListe
         super.onDestroy()
     }
 
-    fun onResume() {
+    override fun onResume() {
         // Resume video player
         if (mPositionWhenPaused >= 0) {
             mVideoView.seekTo(mPositionWhenPaused)
@@ -138,7 +146,7 @@ class PictureVideoPlayActivity : PictureBaseActivity(), MediaPlayer.OnErrorListe
         }
     }
 
-    fun onBackPressed() {
+    override fun onBackPressed() {
         if (config.windowAnimationStyle != null
                 && config.windowAnimationStyle.activityPreviewExitAnimation !== 0) {
             finish()
@@ -149,21 +157,11 @@ class PictureVideoPlayActivity : PictureBaseActivity(), MediaPlayer.OnErrorListe
         }
     }
 
-    protected fun attachBaseContext(newBase: Context?) {
-        super.attachBaseContext(object : ContextWrapper(newBase) {
-            override fun getSystemService(name: String): Any {
-                return if (Context.AUDIO_SERVICE == name) {
-                    getApplicationContext().getSystemService(name)
-                } else super.getSystemService(name)
-            }
-        })
-    }
-
     override fun onPrepared(mp: MediaPlayer) {
-        mp.setOnInfoListener(MediaPlayer.OnInfoListener { mp1: MediaPlayer?, what: Int, extra: Int ->
+        mp.setOnInfoListener(MediaPlayer.OnInfoListener setOnInfoListener@{ mp1: MediaPlayer?, what: Int, extra: Int ->
             if (what == MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START) {
                 // video started
-                mVideoView.setBackgroundColor(Color.TRANSPARENT)
+                mVideoView?.setBackgroundColor(Color.TRANSPARENT)
                 return@setOnInfoListener true
             }
             false

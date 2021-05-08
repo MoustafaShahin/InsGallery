@@ -76,7 +76,7 @@ abstract class PictureBaseActivity : AppCompatActivity() {
     /**
      * init PictureSelector Style
      */
-    protected fun initPictureSelectorStyle() {}
+    protected open fun initPictureSelectorStyle() {}
 
     /**
      * Set CompleteText
